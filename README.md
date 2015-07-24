@@ -13,7 +13,7 @@ To initialize the slider initialize the slider like this
 
 ```
 var params = {min: 0, max: 24, defaultMin: 10, defaultMax: 20};
-var slider = new RangeSlider("my-svg", params);
+var slider = new RangeSlider("#my-svg", params);
 ```
 
 The first argument of `RangeSlider` constructor is the id of the svg. The second argument is a hash of parameters
