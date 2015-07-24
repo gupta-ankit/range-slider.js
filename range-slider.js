@@ -63,11 +63,14 @@ function RangeSlider(id, params){
         var newX = currentX + d3.event.dx;
         if (sliderScale.invert(newX) < min) {
             sliderMin = min;
-        } else {
+        } else if (sliderScale.invert(newX + 20) < sliderMax ) {
             sliderMin = sliderScale.invert(newX );
-            callChangeEventListeners();
+            callEventListeners("changing", { cause: "range-left" });
         }
         redraw();
+    })
+    .on("dragend", function(){
+        callEventListeners("change", { cause: "range-left" });
     })
     sliderLeftHandle.call(leftDrag);
 
@@ -86,11 +89,14 @@ function RangeSlider(id, params){
 
         if (sliderScale.invert(newX) > max) {
             sliderMax = max;
-        } else {
+        } else if (sliderScale.invert(newX - 20) > sliderMin ){
             sliderMax = sliderScale.invert(newX);
-            callChangeEventListeners();
+            callEventListeners("changing", { cause: "range-right" });
         }
         redraw();
+    })
+    .on("dragend", function(){
+        callEventListeners("change", { cause: "range-right" });
     })
     sliderRightHandle.call(rightDrag);
 
@@ -106,10 +112,13 @@ function RangeSlider(id, params){
         if (sliderScale.invert(newLeftX) >= min && sliderScale.invert(newRightX) <= max) {
             sliderMin = sliderScale.invert(newLeftX);
             sliderMax = sliderScale.invert(newRightX);
-            callChangeEventListeners();
+            callEventListeners("changing", { cause: "slide" });
         }
         redraw();
     })
+    .on("dragend", function(){
+        callEventListeners("change", { cause: "slide" });
+    });
     sliderRect.call(sliderRectDrag);
 
     function redraw(){
@@ -130,22 +139,36 @@ function RangeSlider(id, params){
         return sliderMax;
     }
 
+    var eventListeners = Object.create(null);
+    eventListeners.change = [];
+    eventListeners.changing = [];
+
     var changeEventListeners = [];
     this.on = function(event, fn) {
         switch (event) {
             case "change":
                 if( fn === null) {
-                    changeEventListeners = [];
+                    eventListeners["change"] = [];
                 }else {
-                    changeEventListeners.push(fn);
+                    eventListeners["change"].push(fn);
+                }
+                break;
+
+            case "changing":
+                if( fn === null) {
+                    eventListeners["changing"] = [];
+                }else {
+                    eventListeners["changing"].push(fn);
                 }
                 break;
         }
     }
 
-    function callChangeEventListeners(){
-        for(var i in changeEventListeners){
-            changeEventListeners[i]();
+    function callEventListeners(event, params){
+        var listeners = eventListeners[event];
+
+        for(var i in listeners){
+            listeners[i](params);
         }
     }
 }
